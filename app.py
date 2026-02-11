@@ -352,4 +352,17 @@ elif opcion_actual == "📊 Historial":
         id_sel = st.selectbox("Seleccione ID para descargar comprobante", df_h['id'])
         v_data = df_h[df_h['id'] == id_sel].iloc[0].to_dict()
         st.download_button(f"📥 PDF #{id_sel}", generar_factura_pdf(v_data), f"Factura_{id_sel}.pdf", "application/pdf")
+
     else: st.info("No hay ventas registradas.")
+        import streamlit as st
+
+# ... tu código actual ...
+
+# BOTÓN TEMPORAL PARA RESCATAR LOS DATOS
+with open("tu_archivo_local.db", "rb") as file: # Cambia "tu_archivo_local.db" por el nombre real de tu archivo
+    st.download_button(
+        label="📥 DESCARGAR DATOS REALES (CLIC AQUÍ)",
+        data=file,
+        file_name="datos_nube.db",
+        mime="application/octet-stream"
+    )
