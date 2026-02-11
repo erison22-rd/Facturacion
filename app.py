@@ -359,7 +359,7 @@ import streamlit as st
 # --- BOTÓN DE RESCATE DE DATOS ---
 # Asegúrate de que estas líneas estén pegadas a la izquierda (sin espacios)
 try:
-    with open("tu_archivo.db", "rb") as file: # <--- CAMBIA ESTO por el nombre de tu archivo .db
+    with open("fiber_telecom.db", "rb") as file: # <--- CAMBIA ESTO por el nombre de tu archivo .db
         st.download_button(
             label="🟢 DESCARGAR DATOS REALES",
             data=file,
@@ -369,6 +369,7 @@ try:
 except FileNotFoundError:
     st.error("No se encontró el archivo .db. Verifica el nombre.")
     
+
 
 
 
