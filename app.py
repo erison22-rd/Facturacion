@@ -96,28 +96,16 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. BASE DE DATOS ---
-def conectar_db():
-    return sqlite3.connect('fiber_telecom.db', check_same_thread=False)
+# --- 4. BASE DE DATOS (CONEXIÓN A NUBE SUPABASE) ---
+from supabase import create_client, Client
 
-conn = conectar_db()
-cursor = conn.cursor()
-cursor.execute('CREATE TABLE IF NOT EXISTS clientes (id TEXT PRIMARY KEY, nombre TEXT)')
-# ACTUALIZACIÓN DE TABLA INVENTARIO PARA 2 PRECIOS
-cursor.execute('''CREATE TABLE IF NOT EXISTS inventario 
-                  (nombre TEXT PRIMARY KEY, cantidad INTEGER, minimo INTEGER, precio REAL, precio_especial REAL)''')
-cursor.execute('CREATE TABLE IF NOT EXISTS ventas (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente_id TEXT, producto TEXT, cantidad INTEGER, monto REAL, pagado REAL, metodo TEXT, fecha TEXT)')
-cursor.execute('CREATE TABLE IF NOT EXISTS abonos (id INTEGER PRIMARY KEY AUTOINCREMENT, venta_id INTEGER, monto_abono REAL, metodo_abono TEXT, fecha_abono TEXT)')
-cursor.execute('CREATE TABLE IF NOT EXISTS gastos (id INTEGER PRIMARY KEY AUTOINCREMENT, concepto TEXT, monto REAL, fecha TEXT)')
+# Configuración de conexión
+SUPABASE_URL = "https://vzrwieiniungubldzgdu.supabase.co"
+SUPABASE_KEY = "sb_publishable_SdZWvb3wG0l0X2ViYyMBWA_2m3UGq0s"
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# Migración simple si la columna no existe
-try:
-    cursor.execute("ALTER TABLE inventario ADD COLUMN precio_especial REAL DEFAULT 0")
-    conn.commit()
-except:
-    pass
-
-conn.commit()
+# NOTA: Ya no usamos sqlite3.connect ni cursor.execute aquí. 
+# Las tablas ya viven en la web de Supabase.
 
 # --- 5. ACCESO Y NAVEGACIÓN ---
 if "autenticado" not in st.session_state: st.session_state["autenticado"] = False
@@ -369,6 +357,7 @@ try:
 except FileNotFoundError:
     st.error("No se encontró el archivo .db. Verifica el nombre.")
     
+
 
 
 
