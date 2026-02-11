@@ -367,8 +367,9 @@ try:
             mime="application/octet-stream"
         )
 except FileNotFoundError:
-    st.error("No se encontró el archivo .db. Verifica el nombre.")"
+    st.error("No se encontró el archivo .db. Verifica el nombre.")
     )
+
 
 
 
