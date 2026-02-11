@@ -354,7 +354,7 @@ elif opcion_actual == "📊 Historial":
         st.download_button(f"📥 PDF #{id_sel}", generar_factura_pdf(v_data), f"Factura_{id_sel}.pdf", "application/pdf")
 
     else: st.info("No hay ventas registradas.")
-        import streamlit as st
+import streamlit as st
 
 # --- BOTÓN DE RESCATE DE DATOS ---
 # Asegúrate de que estas líneas estén pegadas a la izquierda (sin espacios)
@@ -369,5 +369,6 @@ try:
 except FileNotFoundError:
     st.error("No se encontró el archivo .db. Verifica el nombre.")"
     )
+
 
 
