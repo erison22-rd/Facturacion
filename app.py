@@ -355,6 +355,7 @@ elif opcion_actual == "📊 Historial":
 
     else: st.info("No hay ventas registradas.")
         import streamlit as st
+
 # --- BOTÓN DE RESCATE DE DATOS ---
 # Asegúrate de que estas líneas estén pegadas a la izquierda (sin espacios)
 try:
@@ -368,4 +369,5 @@ try:
 except FileNotFoundError:
     st.error("No se encontró el archivo .db. Verifica el nombre.")"
     )
+
 
