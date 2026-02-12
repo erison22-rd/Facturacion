@@ -5,6 +5,10 @@ from datetime import datetime
 import plotly.express as px
 from fpdf import FPDF
 from supabase import create_client, Client # <-- Nueva librería
+# --- CONFIGURACIÓN DE NUBE (SUPABASE) ---
+SUPABASE_URL = "https://vzrwieiniungubldzgdu.supabase.co"
+SUPABASE_KEY = "sb_publishable_SdZWvb3wG0l0X2ViYyMBWA_2m3UGq0s"
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # --- 1. CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(
@@ -381,6 +385,7 @@ try:
 except FileNotFoundError:
     st.error("No se encontró el archivo .db. Verifica el nombre.")
     
+
 
 
 
