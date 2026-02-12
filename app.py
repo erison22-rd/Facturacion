@@ -258,43 +258,82 @@ elif opcion_actual == "📦 Inventario":
     else:
         st.info("El inventario en la nube está vacío.")
 
-elif opcion_actual == "🛒 Ventas":
+elif st.session_state["menu_option"] == "🛒 Ventas":
     st.title("🛒 Nueva Venta")
-    df_cl = pd.read_sql("SELECT * FROM clientes", conn)
-    df_in = pd.read_sql("SELECT * FROM inventario WHERE cantidad > 0", conn)
+    
+    # --- 1. LEER DATOS DE LA NUBE ---
+    res_cl = supabase.table("clientes").select("*").execute()
+    res_in = supabase.table("inventario").select("*").gt("cantidad", 0).execute()
+    
+    df_cl = pd.DataFrame(res_cl.data)
+    df_in = pd.DataFrame(res_in.data)
     
     if df_cl.empty or df_in.empty: 
-        st.warning("Faltan clientes o inventario.")
+        st.warning("⚠️ No hay clientes o productos con stock en la nube.")
     else:
         c1, c2 = st.columns(2)
         with c1:
-            cli = st.selectbox("Cliente", df_cl['id'] + " - " + df_cl['nombre'])
-            pro = st.selectbox("Producto", df_in['nombre'])
+            # Formateamos el selectbox para que muestre ID y Nombre
+            lista_clientes = df_cl['id'] + " - " + df_cl['nombre']
+            cli = st.selectbox("Seleccionar Cliente", lista_clientes)
+            
+            # Seleccionar Producto
+            pro = st.selectbox("Seleccionar Producto", df_in['nombre'])
         
+        # Obtenemos info del producto seleccionado
         info = df_in[df_in['nombre'] == pro].iloc[0]
         
         with c2:
             tipo_p = st.radio("Tipo de Precio", ["Normal", "Especial"], horizontal=True)
             p_final = info['precio'] if tipo_p == "Normal" else info['precio_especial']
-            can = st.number_input("Cantidad", 1, int(info['cantidad']))
+            can = st.number_input("Cantidad a vender", 1, int(info['cantidad']))
         
         tot = p_final * can
-        st.markdown(f"### TOTAL: :green[${tot:,.2f}] (Precio Unitario: ${p_final:,.2f})")
         
+        # --- 2. MOSTRAR TOTAL EN VERDE ---
+        st.markdown(f"""
+            <div style='background-color: rgba(0,255,0,0.1); padding: 20px; border-radius: 10px; text-align: center; border: 2px solid #00FF00;'>
+                <h1 style='color: #00FF00; margin: 0;'>TOTAL: ${tot:,.2f}</h1>
+                <p style='color: white; margin: 0;'>Precio Unitario: ${p_final:,.2f}</p>
+            </div>
+        """, unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+
         with st.form("f_v"):
             met = st.selectbox("Método de Pago", ["Efectivo", "Transferencia", "Depósito", "Crédito"])
-            abo = st.number_input("Monto Recibido / Inicial", 0.0, float(tot))
-            confirmar_venta = st.form_submit_button("✅ CONFIRMAR VENTA")
+            abo = st.number_input("Monto Recibido / Abono Inicial", 0.0, float(tot))
+            confirmar_venta = st.form_submit_button("✅ CONFIRMAR Y SINCRONIZAR VENTA")
             
             if confirmar_venta:
                 fh = datetime.now().strftime("%Y-%m-%d")
-                cursor.execute("INSERT INTO ventas (cliente_id, producto, cantidad, monto, pagado, metodo, fecha) VALUES (?,?,?,?,?,?,?)", (cli.split(" - ")[0], pro, can, tot, abo, met, fh))
-                cursor.execute("UPDATE inventario SET cantidad = cantidad - ? WHERE nombre = ?", (can, pro))
-                conn.commit()
-                st.session_state["venta_reciente"] = {
-                    'id': cursor.lastrowid, 'fecha': fh, 'cliente_nombre': cli.split(" - ")[1], 
-                    'producto': pro, 'cantidad': can, 'monto': tot
+                
+                # A. INSERTAR VENTA EN SUPABASE
+                venta_data = {
+                    "cliente_id": cli.split(" - ")[0],
+                    "producto": pro,
+                    "cantidad": can,
+                    "monto": tot,
+                    "pagado": abo,
+                    "metodo": met,
+                    "fecha": fh
                 }
+                res_v = supabase.table("ventas").insert(venta_data).execute()
+                
+                # B. ACTUALIZAR STOCK EN INVENTARIO
+                nueva_cant = int(info['cantidad']) - can
+                supabase.table("inventario").update({"cantidad": nueva_cant}).eq("nombre", pro).execute()
+                
+                # C. PREPARAR DATOS PARA EL PDF (Opcional)
+                st.session_state["venta_reciente"] = {
+                    'id': res_v.data[0]['id'], 
+                    'fecha': fh, 
+                    'cliente_nombre': cli.split(" - ")[1], 
+                    'producto': pro, 
+                    'cantidad': can, 
+                    'monto': tot
+                }
+                
+                st.success("🚀 Venta registrada y stock actualizado en la nube")
                 st.rerun()
 
 elif opcion_actual == "👥 Clientes":
@@ -426,6 +465,7 @@ try:
 except FileNotFoundError:
     st.error("No se encontró el archivo .db. Verifica el nombre.")
     
+
 
 
 
