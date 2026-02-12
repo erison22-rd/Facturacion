@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
-import sqlite3
 import os
 from datetime import datetime
 import plotly.express as px
 from fpdf import FPDF
+from supabase import create_client, Client # <-- Nueva librería
 
 # --- 1. CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(
@@ -168,6 +168,7 @@ if opcion_actual == "🏠 Dashboard":
 elif opcion_actual == "📦 Inventario":
     st.title("📦 Inventario")
     col_add, col_del = st.columns(2)
+    
     with col_add:
         st.subheader("Añadir / Editar")
         with st.form("f_inv"):
@@ -176,18 +177,41 @@ elif opcion_actual == "📦 Inventario":
             p2 = st.number_input("Precio Especial", min_value=0.0)
             s = st.number_input("Stock", min_value=0)
             m = st.number_input("Mínimo", min_value=0)
+            
             if st.form_submit_button("💾 GUARDAR PRODUCTO"):
-                cursor.execute("INSERT OR REPLACE INTO inventario VALUES (?,?,?,?,?)", (n, s, m, p1, p2))
-                conn.commit(); st.rerun()
+                # Preparamos los datos en un diccionario (formato Supabase)
+                datos_producto = {
+                    "nombre": n,
+                    "cantidad": s,
+                    "minimo": m,
+                    "precio": p1,
+                    "precio_especial": p2
+                }
+                # Usamos upsert para que si el nombre existe, lo actualice (REPLACE)
+                supabase.table("inventario").upsert(datos_producto).execute()
+                st.success(f"Producto {n} guardado en la nube")
+                st.rerun()
+
     with col_del:
         st.subheader("Eliminar")
-        df_inv = pd.read_sql("SELECT nombre FROM inventario", conn)
-        if not df_inv.empty:
-            prod_borrar = st.selectbox("Seleccionar producto", df_inv['nombre'])
+        # Leemos los nombres directamente de Supabase
+        res_nombres = supabase.table("inventario").select("nombre").execute()
+        nombres = [fila['nombre'] for fila in res_nombres.data]
+        
+        if nombres:
+            prod_borrar = st.selectbox("Seleccionar producto", nombres)
             if st.button("🗑️ ELIMINAR PRODUCTO"):
-                cursor.execute("DELETE FROM inventario WHERE nombre = ?", (prod_borrar,))
-                conn.commit(); st.rerun()
-    st.dataframe(pd.read_sql("SELECT * FROM inventario", conn), use_container_width=True)
+                supabase.table("inventario").delete().eq("nombre", prod_borrar).execute()
+                st.warning(f"Producto {prod_borrar} eliminado")
+                st.rerun()
+
+    # Mostramos la tabla completa leyendo de la nube
+    res_full = supabase.table("inventario").select("*").execute()
+    if res_full.data:
+        df_inv = pd.DataFrame(res_full.data)
+        st.dataframe(df_inv, use_container_width=True)
+    else:
+        st.info("El inventario en la nube está vacío.")
 
 elif opcion_actual == "🛒 Ventas":
     st.title("🛒 Nueva Venta")
@@ -357,6 +381,7 @@ try:
 except FileNotFoundError:
     st.error("No se encontró el archivo .db. Verifica el nombre.")
     
+
 
 
 
