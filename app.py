@@ -267,7 +267,7 @@ df_cl = pd.DataFrame(res_cl.data)
 
 if df_cl.empty or df_in.empty: 
         st.warning("⚠️ No hay clientes o productos con stock en la nube.")
-    else:
+else:
         c1, c2 = st.columns(2)
         with c1:
             # Tu código de clientes aquí...
@@ -468,6 +468,7 @@ try:
 except FileNotFoundError:
     st.error("No se encontró el archivo .db. Verifica el nombre.")
     
+
 
 
 
