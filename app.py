@@ -267,8 +267,10 @@ df_cl = pd.DataFrame(res_cl.data)
 
 if df_cl.empty or df_in.empty: 
         st.warning("⚠️ No hay clientes o productos con stock en la nube.")
-    else: # <-- El código de abajo debe estar alineado bajo el st.warning
-        c1, c2 = st.columns(2)  # <-- Asegúrate de que tenga 8 espacios (o 2 tabs)
+    else:
+        c1, c2 = st.columns(2)
+        with c1:
+            # Tu código de clientes aquí...
         with c1:
             lista_clientes = df_cl['cliente_id'] + " - " + df_cl['nombre']
             cli = st.selectbox("Seleccionar Cliente", lista_clientes)
@@ -466,6 +468,7 @@ try:
 except FileNotFoundError:
     st.error("No se encontró el archivo .db. Verifica el nombre.")
     
+
 
 
 
