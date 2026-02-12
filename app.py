@@ -140,8 +140,42 @@ if "menu_option" not in st.session_state:
 with st.sidebar:
     st.markdown('<div class="brand-container">📡 FIBERTELECOM</div>', unsafe_allow_html=True)
     st.markdown("---")
+
+    # --- NUEVO: CÁLCULOS EN TIEMPO REAL DESDE SUPABASE ---
+    try:
+        # Traemos ventas para calcular el dinero
+        res_v = supabase.table("ventas").select("monto, pagado").execute()
+        df_v_side = pd.DataFrame(res_v.data)
+
+        if not df_v_side.empty:
+            ventas_totales = df_v_side['monto'].sum()
+            cobrado_total = df_v_side['pagado'].sum()
+            porcentaje = (cobrado_total / ventas_totales * 100) if ventas_totales > 0 else 0
+        else:
+            ventas_totales, cobrado_total, porcentaje = 0, 0, 0
+
+        # Mostramos los indicadores en el VERDE que pediste
+        st.markdown(f"""
+            <div style='background-color: rgba(0,255,0,0.1); padding: 10px; border-radius: 10px; border: 1px solid #00FF00;'>
+                <p style='margin:0; color: white; font-size: 0.8rem;'>Ventas Totales</p>
+                <h2 style='margin:0; color: #00FF00;'>${ventas_totales:,.2f}</h2>
+                <hr style='margin: 10px 0; border-color: #00FF00;'>
+                <p style='margin:0; color: white; font-size: 0.8rem;'>Cobrado</p>
+                <h2 style='margin:0; color: #00FF00;'>{porcentaje:.1f}%</h2>
+            </div>
+        """, unsafe_allow_html=True)
+    except Exception:
+        st.write("Conectando a base de datos...")
+
+    st.markdown("---")
+    
+    # --- TU MENÚ ORIGINAL ---
     opciones = ["🏠 Dashboard", "📦 Inventario", "🛒 Ventas", "👥 Clientes", "💸 Cobranza", "📉 Gastos", "📊 Historial"]
-    sel = st.radio("Navegación", opciones, index=opciones.index(st.session_state["menu_option"]), key="sidebar_radio", on_change=lambda: st.session_state.update({"menu_option": st.session_state.sidebar_radio}), label_visibility="collapsed")
+    sel = st.radio("Navegación", opciones, index=opciones.index(st.session_state["menu_option"]), 
+                   key="sidebar_radio", 
+                   on_change=lambda: st.session_state.update({"menu_option": st.session_state.sidebar_radio}), 
+                   label_visibility="collapsed")
+    
     st.markdown("<br><br>", unsafe_allow_html=True)
     if st.button("🚪 CERRAR SESIÓN"):
         st.session_state["autenticado"] = False
@@ -392,6 +426,7 @@ try:
 except FileNotFoundError:
     st.error("No se encontró el archivo .db. Verifica el nombre.")
     
+
 
 
 
