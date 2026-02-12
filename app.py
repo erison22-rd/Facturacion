@@ -261,16 +261,14 @@ elif opcion_actual == "📦 Inventario":
 elif st.session_state["menu_option"] == "🛒 Ventas":
     st.title("🛒 Nueva Venta")
     
-    # --- 1. LEER DATOS DE LA NUBE ---
-    res_cl = supabase.table("clientes").select("*").execute()
-    res_in = supabase.table("inventario").select("*").gt("cantidad", 0).execute()
-    
-    df_cl = pd.DataFrame(res_cl.data)
-    df_in = pd.DataFrame(res_in.data)
-    
-    if df_cl.empty or df_in.empty: 
-        st.warning("⚠️ No hay clientes o productos con stock en la nube.")
-    else:
+# --- 1. LEER DATOS DE LA NUBE ---
+res_cl = supabase.table("clientes").select("*").execute()
+df_cl = pd.DataFrame(res_cl.data)
+
+if not df_cl.empty:
+    # Usamos 'cliente_id' en lugar de 'id' porque así lo nombraste en Supabase
+    lista_clientes = df_cl['cliente_id'] + " - " + df_cl['nombre']
+    cli = st.selectbox("Seleccionar Cliente", lista_clientes)
         c1, c2 = st.columns(2)
         with c1:
             # Formateamos el selectbox para que muestre ID y Nombre
@@ -465,6 +463,7 @@ try:
 except FileNotFoundError:
     st.error("No se encontró el archivo .db. Verifica el nombre.")
     
+
 
 
 
