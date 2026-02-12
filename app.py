@@ -10,6 +10,13 @@ SUPABASE_URL = "https://vzrwieiniungubldzgdu.supabase.co"
 SUPABASE_KEY = "sb_publishable_SdZWvb3wG0l0X2ViYyMBWA_2m3UGq0s"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+# PRUEBA DE CONEXIÓN RÁPIDA
+try:
+    test = supabase.table("inventario").select("*", count="exact").limit(1).execute()
+    st.success("✅ ¡Conexión exitosa con la nube de Supabase!")
+except Exception as e:
+    st.error(f"❌ Error de conexión: {e}")
+
 # --- 1. CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(
     page_title="FIBERTELECOM",
@@ -385,6 +392,7 @@ try:
 except FileNotFoundError:
     st.error("No se encontró el archivo .db. Verifica el nombre.")
     
+
 
 
 
