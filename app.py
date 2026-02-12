@@ -12,7 +12,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # PRUEBA DE CONEXIÓN RÁPIDA
 try:
-    test = supabase.table("inventario").select("*", count="exact").limit(1).execute()
+    test = supabase.table("Inventario").select("*", count="exact").limit(1).execute()
     st.success("✅ ¡Conexión exitosa con la nube de Supabase!")
 except Exception as e:
     st.error(f"❌ Error de conexión: {e}")
@@ -392,6 +392,7 @@ try:
 except FileNotFoundError:
     st.error("No se encontró el archivo .db. Verifica el nombre.")
     
+
 
 
 
